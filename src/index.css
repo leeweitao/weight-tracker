@@ -479,3 +479,9 @@ body {
   color: var(--negative);
   font-size: 0.85rem;
 }
+
+.auth-success {
+  margin: 0.5rem 0 0;
+  color: #86efac;
+  font-size: 0.85rem;
+}

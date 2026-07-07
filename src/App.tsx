@@ -37,6 +37,10 @@ function App() {
     signUp,
     signIn,
     signOut,
+    passwordRecovery,
+    requestPasswordReset,
+    updatePassword,
+    dismissPasswordRecovery,
   } = useWeightStorage()
 
   const [date, setDate] = useState(getTodayString())
@@ -401,11 +405,15 @@ function App() {
         isConfigured={isCloudConfigured}
         userEmail={user?.email ?? null}
         authLoading={authLoading}
+        passwordRecovery={passwordRecovery}
         syncStatus={syncStatus}
         syncError={syncError}
         onSignIn={signIn}
         onSignUp={signUp}
         onSignOut={signOut}
+        onRequestPasswordReset={requestPasswordReset}
+        onUpdatePassword={updatePassword}
+        onDismissPasswordRecovery={dismissPasswordRecovery}
       />
 
       <footer className="footer">

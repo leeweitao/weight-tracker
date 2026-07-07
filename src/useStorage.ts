@@ -136,7 +136,18 @@ function initializeStorage(): { projects: WeightProject[]; settings: AppSettings
 }
 
 export function useWeightStorage() {
-  const { user, loading: authLoading, isConfigured, signUp, signIn, signOut } = useAuth()
+  const {
+    user,
+    loading: authLoading,
+    isConfigured,
+    passwordRecovery,
+    signUp,
+    signIn,
+    signOut,
+    requestPasswordReset,
+    updatePassword,
+    dismissPasswordRecovery,
+  } = useAuth()
   const initial = useMemo(() => initializeStorage(), [])
   const [projects, setProjects] = useState<WeightProject[]>(initial.projects)
   const [settings, setSettings] = useState<AppSettings>(initial.settings)
@@ -351,5 +362,9 @@ export function useWeightStorage() {
     signUp,
     signIn,
     signOut,
+    passwordRecovery,
+    requestPasswordReset,
+    updatePassword,
+    dismissPasswordRecovery,
   }
 }
