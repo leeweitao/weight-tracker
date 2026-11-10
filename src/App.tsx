@@ -12,6 +12,7 @@ import {
   getRollingWeeklyAverage,
   getTodayString,
   getWeeklyAverages,
+  getWeeklyBreakdown,
 } from './utils'
 import './index.css'
 
@@ -69,6 +70,11 @@ function App() {
 
   const avgWeeklyChange = useMemo(
     () => getAverageWeeklyChange(weeklyAverages),
+    [weeklyAverages],
+  )
+
+  const weeklyBreakdown = useMemo(
+    () => getWeeklyBreakdown(weeklyAverages),
     [weeklyAverages],
   )
 
@@ -345,20 +351,40 @@ function App() {
         <WeightChart data={chartData} unit={settings.unit} phase={phase} />
       </section>
 
-      {weeklyAverages.length > 0 && (
+      {weeklyBreakdown.length > 0 && (
         <section className="card">
           <h2>Weekly breakdown</h2>
-          <ul className="week-list">
-            {[...weeklyAverages].reverse().map((week) => (
-              <li key={week.weekStart}>
-                <span>Week of {week.weekLabel}</span>
-                <span className="week-avg">
-                  {week.average} {settings.unit}
-                  <small>({week.entryCount} day{week.entryCount === 1 ? '' : 's'})</small>
-                </span>
-              </li>
-            ))}
-          </ul>
+          <p className="hint">Week 1 is the oldest week in the selected range. Change is vs the previous week.</p>
+          <div className="table-wrap">
+            <table className="week-table">
+              <thead>
+                <tr>
+                  <th>Week</th>
+                  <th>Started</th>
+                  <th>Average</th>
+                  <th>Change</th>
+                  <th>Days</th>
+                </tr>
+              </thead>
+              <tbody>
+                {weeklyBreakdown.map((week) => (
+                  <tr key={week.weekStart}>
+                    <td>Week {week.weekNumber}</td>
+                    <td>{week.weekLabel}</td>
+                    <td>
+                      {week.average} {settings.unit}
+                    </td>
+                    <td>
+                      {week.changeFromPrevious == null
+                        ? '—'
+                        : formatWeightChange(week.changeFromPrevious, settings.unit)}
+                    </td>
+                    <td>{week.entryCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatAuthError } from '../authErrors'
 import type { SyncStatus } from '../types'
 
 type AuthMode = 'signin' | 'signup' | 'forgot'
@@ -73,7 +74,7 @@ export function CloudSyncPanel({
       }
       if (mode !== 'forgot') setPassword('')
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Authentication failed')
+      setAuthError(formatAuthError(error))
     } finally {
       setSubmitting(false)
     }
@@ -100,7 +101,7 @@ export function CloudSyncPanel({
       setConfirmPassword('')
       setAuthMessage('Password updated. You can sign in with your new password on other devices.')
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Failed to update password')
+      setAuthError(formatAuthError(error))
     } finally {
       setSubmitting(false)
     }
@@ -114,7 +115,7 @@ export function CloudSyncPanel({
       setEmail('')
       setPassword('')
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : 'Sign out failed')
+      setAuthError(formatAuthError(error))
     }
   }
 
@@ -185,6 +186,12 @@ export function CloudSyncPanel({
               ? 'Enter your email and we will send a password reset link.'
               : 'Sign in to back up and sync your projects across phone and laptop.'}
           </p>
+          {mode === 'signin' && (
+            <p className="hint local-data-note">
+              Weight logged while signed out is still saved on this device. Sign in here to back it
+              up — we merge local and cloud data automatically.
+            </p>
+          )}
           <form className="cloud-form" onSubmit={handleSubmit}>
             <label>
               Email

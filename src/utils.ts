@@ -81,3 +81,19 @@ export function getAverageWeeklyChange(weeklyAverages: WeeklyAverage[]): number 
 export function formatWeightChange(value: number, unit: string): string {
   return `${value >= 0 ? '+' : ''}${value} ${unit}`
 }
+
+export interface WeeklyBreakdownRow extends WeeklyAverage {
+  weekNumber: number
+  changeFromPrevious: number | null
+}
+
+export function getWeeklyBreakdown(weeklyAverages: WeeklyAverage[]): WeeklyBreakdownRow[] {
+  return weeklyAverages.map((week, index) => ({
+    ...week,
+    weekNumber: index + 1,
+    changeFromPrevious:
+      index === 0
+        ? null
+        : Math.round((week.average - weeklyAverages[index - 1].average) * 10) / 10,
+  }))
+}
