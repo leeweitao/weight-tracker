@@ -82,18 +82,62 @@ export function formatWeightChange(value: number, unit: string): string {
   return `${value >= 0 ? '+' : ''}${value} ${unit}`
 }
 
-export interface WeeklyBreakdownRow extends WeeklyAverage {
+export interface WeeklyHistoryRow {
+  weekStart: string
+  weekLabel: string
   weekNumber: number
+  average: number | null
+  entryCount: number
   changeFromPrevious: number | null
 }
 
-export function getWeeklyBreakdown(weeklyAverages: WeeklyAverage[]): WeeklyBreakdownRow[] {
-  return weeklyAverages.map((week, index) => ({
-    ...week,
-    weekNumber: index + 1,
-    changeFromPrevious:
-      index === 0
-        ? null
-        : Math.round((week.average - weeklyAverages[index - 1].average) * 10) / 10,
-  }))
+export function getWeeklyHistory(entries: WeightEntry[], today = new Date()): WeeklyHistoryRow[] {
+  if (entries.length === 0) return []
+
+  const firstEntryDate = entries.reduce(
+    (earliest, entry) => (entry.date < earliest ? entry.date : earliest),
+    entries[0].date,
+  )
+  const firstWeek = startOfWeek(parseISO(firstEntryDate), { weekStartsOn: 1 })
+  const currentWeek = startOfWeek(today, { weekStartsOn: 1 })
+  const entriesByWeek = new Map<string, WeightEntry[]>()
+
+  for (const entry of entries) {
+    const weekStart = format(startOfWeek(parseISO(entry.date), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+    const weekEntries = entriesByWeek.get(weekStart) ?? []
+    weekEntries.push(entry)
+    entriesByWeek.set(weekStart, weekEntries)
+  }
+
+  return eachWeekOfInterval({ start: firstWeek, end: currentWeek }, { weekStartsOn: 1 }).map(
+    (weekStart, weekNumber) => {
+      const weekStartKey = format(weekStart, 'yyyy-MM-dd')
+      const weekEntries = entriesByWeek.get(weekStartKey) ?? []
+      const average =
+        weekEntries.length === 0
+          ? null
+          : Math.round(
+              (weekEntries.reduce((sum, entry) => sum + entry.weight, 0) / weekEntries.length) * 10,
+            ) / 10
+      const previousWeek =
+        weekNumber > 0
+          ? entriesByWeek.get(format(subWeeks(weekStart, 1), 'yyyy-MM-dd'))
+          : undefined
+      const previousAverage = previousWeek?.length
+        ? previousWeek.reduce((sum, entry) => sum + entry.weight, 0) / previousWeek.length
+        : null
+
+      return {
+        weekStart: weekStartKey,
+        weekLabel: format(weekStart, 'MMM d, yyyy'),
+        weekNumber,
+        average,
+        entryCount: weekEntries.length,
+        changeFromPrevious:
+          average == null || previousAverage == null
+            ? null
+            : Math.round((average - previousAverage) * 10) / 10,
+      }
+    },
+  )
 }

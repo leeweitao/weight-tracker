@@ -12,7 +12,7 @@ import {
   getRollingWeeklyAverage,
   getTodayString,
   getWeeklyAverages,
-  getWeeklyBreakdown,
+  getWeeklyHistory,
 } from './utils'
 import './index.css'
 
@@ -49,6 +49,7 @@ function App() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const [newProjectPhase, setNewProjectPhase] = useState<Phase>('cutting')
+  const [showWeeklyHistory, setShowWeeklyHistory] = useState(true)
 
   const phase = activeProject?.phase ?? 'cutting'
   const existingToday = entries.find((entry) => entry.date === date)
@@ -73,9 +74,9 @@ function App() {
     [weeklyAverages],
   )
 
-  const weeklyBreakdown = useMemo(
-    () => getWeeklyBreakdown(weeklyAverages),
-    [weeklyAverages],
+  const weeklyHistory = useMemo(
+    () => getWeeklyHistory(entries),
+    [entries],
   )
 
   const rangeEntries = useMemo(
@@ -351,40 +352,54 @@ function App() {
         <WeightChart data={chartData} unit={settings.unit} phase={phase} />
       </section>
 
-      {weeklyBreakdown.length > 0 && (
+      {weeklyHistory.length > 0 && (
         <section className="card">
-          <h2>Weekly breakdown</h2>
-          <p className="hint">Week 1 is the oldest week in the selected range. Change is vs the previous week.</p>
-          <div className="table-wrap">
-            <table className="week-table">
-              <thead>
-                <tr>
-                  <th>Week</th>
-                  <th>Started</th>
-                  <th>Average</th>
-                  <th>Change</th>
-                  <th>Days</th>
-                </tr>
-              </thead>
-              <tbody>
-                {weeklyBreakdown.map((week) => (
-                  <tr key={week.weekStart}>
-                    <td>Week {week.weekNumber}</td>
-                    <td>{week.weekLabel}</td>
-                    <td>
-                      {week.average} {settings.unit}
-                    </td>
-                    <td>
-                      {week.changeFromPrevious == null
-                        ? '—'
-                        : formatWeightChange(week.changeFromPrevious, settings.unit)}
-                    </td>
-                    <td>{week.entryCount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="section-header">
+            <h2>Weekly changes</h2>
+            <button
+              type="button"
+              className="text-btn"
+              aria-expanded={showWeeklyHistory}
+              onClick={() => setShowWeeklyHistory((show) => !show)}
+            >
+              {showWeeklyHistory ? 'Hide history' : 'Show all weeks'}
+            </button>
           </div>
+          {showWeeklyHistory && (
+            <>
+              <p className="hint">Week 0 is your first logged week. Each change compares with the previous week.</p>
+              <div className="table-wrap">
+                <table className="week-table">
+                  <thead>
+                    <tr>
+                      <th>Week</th>
+                      <th>Started</th>
+                      <th>Weekly average</th>
+                      <th>Change</th>
+                      <th>Weigh-ins</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {weeklyHistory.map((week) => (
+                      <tr key={week.weekStart}>
+                        <td>Week {week.weekNumber}</td>
+                        <td>{week.weekLabel}</td>
+                        <td>
+                          {week.average == null ? '—' : `${week.average} ${settings.unit}`}
+                        </td>
+                        <td>
+                          {week.changeFromPrevious == null
+                            ? '—'
+                            : formatWeightChange(week.changeFromPrevious, settings.unit)}
+                        </td>
+                        <td>{week.entryCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </section>
       )}
 
